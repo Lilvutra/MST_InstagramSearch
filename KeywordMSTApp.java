@@ -167,13 +167,47 @@ public class KeywordMSTApp {
         if (u.mainKeyword.equalsIgnoreCase(keyword)) score += 10;
         if (v.mainKeyword.equalsIgnoreCase(keyword)) score += 10;
 
-        if (u.relevantWords.contains(keyword)) {
-            score += u.relevantWords.indexOf(keyword) + 1;
-        }
-        if (v.relevantWords.contains(keyword)) {
-            score += v.relevantWords.indexOf(keyword) + 1;
-        }
+        //more points for earlier positions
+        int position_u = u.relevantWords.indexOf(keyword);
+        score += (u.relevantWords.size() - position_u); //higher score for earlier positions
 
+        int position_v = v.relevantWords.indexOf(keyword);
+        score += (v.relevantWords.size() - position_v); 
+
+        //count the common related words in relevantWords between post u and v
+        for (int i = 0; i < u.relevantWords.size(); i++){
+            for (int j = 0; j < v.relevantWords.size(); j++){
+                if (u.relevantWords.get(i).equalsIgnoreCase(v.relevantWords.get(j))){
+                    score ++;
+                    break;
+                }
+            }
+        }
+        
+        //count the words in post caption that appeared in another post's relevantWords
+        String [] uWords = u.caption.split("\\s+");
+        String [] vWords = v.caption.split("\\s+"); // split at whitespace
+
+        List<String> uList = Arrays.asList(uWords);
+        List<String> vList = Arrays.asList(vWords);
+
+        for (int i = 0; i < uList.size(); i++){
+            for (int j = 0; j < v.relevantWords.size(); j++){
+                if (uList.get(i).equalsIgnoreCase(v.relevantWords.get(j))){
+                    score ++;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < vList.size(); i++){
+            for (int j = 0; j < u.relevantWords.size(); j++){
+                if (vList.get(i).equalsIgnoreCase(u.relevantWords.get(j))){
+                    score ++;
+                    break;
+                }
+            }
+        }
+        
         // Lower score = more important = lower weight
         return 100 - score;
     }
@@ -239,11 +273,17 @@ public class KeywordMSTApp {
     static class DataSource {
         public static List<Post> getSamplePosts() {
             return List.of(
-                new Post("post_1", "beach", List.of("beach", "sunset", "vacation"), "Enjoying the beach at sunset."),
+                new Post("post_1", "summer", List.of("sunset", "swim", "vacation"), "Enjoying the beach at sunset."),
                 new Post("post_2", "sunset", List.of("sunset", "ocean", "beach"), "Sunset over the ocean."),
-                new Post("post_3", "vacation", List.of("vacation", "beach", "sunset"), "Holiday vibes!"),
+                new Post("post_3", "vacation", List.of("beach", "sunset", "swim"), "Holiday vibes!"),
                 new Post("post_4", "forest", List.of("trees", "hike", "sunset"), "Hiking in the forest."),
-                new Post("post_5", "beach", List.of("beach", "waves", "sunny"), "Beach day fun!")
+                new Post("post_5", "beach", List.of("waves", "swim", "sunny"), "Beach day fun!"),
+
+                new Post("post_7", "school", List.of("school", "class", "teacher"), "I will have the exam tomorrow at class"),
+                new Post("post_8", "stress", List.of("anxiety", "pressure", "school"), "School pressure causing too much stress"),
+                new Post("post_9", "teacher", List.of("class", "school", "education"), "My teacher assigned a difficult project")
+                // with keyword "school"
+                // 7 - 9  will be more relate (lower) than 7 - 8 
             );
         }
     }
