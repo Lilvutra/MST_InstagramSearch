@@ -1,5 +1,5 @@
 # MST_InstagramSearch
-a visual representation of Kruskal's minimum spanning tree algorithm to search for Instagram saved posts with keyword(Since it is hella time-consuming to find a saved post in (my) Saved Post on Instagram
+A visual representation of Kruskal's minimum spanning tree algorithm to search for Instagram saved posts with keyword(Since it is hella time-consuming to find a saved post in (my) Saved Post on Instagram
 
 
 
