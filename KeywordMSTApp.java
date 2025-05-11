@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
@@ -13,6 +15,8 @@ public class KeywordMSTApp {
     JTextField keywordField;
     JTextArea resultArea;
     GraphPanel graphPanel;
+    JTable mstTable; //
+    DefaultTableModel tableModel; //
 
 
     void createAndShowGUI() {
@@ -22,9 +26,28 @@ public class KeywordMSTApp {
 
         keywordField = new JTextField(20);
         JButton submitBtn = new JButton("Generate MST");
-        resultArea = new JTextArea(20, 50);
-        resultArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(resultArea);
+        //resultArea = new JTextArea(20, 50);
+        //resultArea.setEditable(false);
+        //JScrollPane scrollPane = new JScrollPane(resultArea);
+
+        //
+        String[] columnNames = {"Icon", "Post 1 Caption", "Post 2 Caption", "Weight"};
+        tableModel = new DefaultTableModel(columnNames, 0){
+
+            public Class<?> getColumnClass(int column) {
+                return column == 0 ? ImageIcon.class : Object.class;
+            }
+
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make cells non-editable
+            }
+        };
+
+        mstTable = new JTable(tableModel);
+        mstTable.setRowHeight(50); // Set row height to accommodate icons
+
+        JScrollPane tableScrollPane = new JScrollPane(mstTable);
+        frame.add(tableScrollPane, BorderLayout.SOUTH);
 
         submitBtn.addActionListener(this::handleGenerate);
 
@@ -34,16 +57,18 @@ public class KeywordMSTApp {
         inputPanel.add(submitBtn);
 
         frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+        //frame.getContentPane().add(scrollPane, BorderLayout.CENTER); //
         frame.setVisible(true);
 
         graphPanel = new GraphPanel();
 
         frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
-        frame.getContentPane().add(scrollPane, BorderLayout.SOUTH);
+        //frame.getContentPane().add(scrollPane, BorderLayout.SOUTH);
         frame.getContentPane().add(graphPanel, BorderLayout.CENTER);
 
-    }class GraphPanel extends JPanel {
+    }
+
+    class GraphPanel extends JPanel {
         List<KeywordMSTApp.Post> nodes;
         List<KeywordMSTApp.Edge> edges;
         Map<KeywordMSTApp.Post, Point> nodeLocations;
@@ -65,7 +90,7 @@ public class KeywordMSTApp {
             g2.setFont(new Font("Arial", Font.PLAIN, 12));
     
             int w = getWidth(), h = getHeight();
-            int radius = 30;
+            int radius = 50;
             int centerX = w / 2, centerY = h / 2;
             double angleStep = 2 * Math.PI / nodes.size();
     
@@ -149,15 +174,29 @@ public class KeywordMSTApp {
     
         mst.sort(Comparator.comparingInt(e1 -> e1.weight));
     
-        StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
-        for (Edge edge : mst) {
-            sb.append(edge).append("\n");
-        }
+        //StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
+        //for (Edge edge : mst) {
+            //sb.append(edge).append("\n");
+        //}
     
-        resultArea.setText(sb.toString());
-    
+        //resultArea.setText(sb.toString());
+  
         // Send to graphPanel
-        graphPanel.update(relevantPosts, mst);
+        tableModel.setRowCount(0); // Clear previous data
+        ImageIcon icon = new ImageIcon("path/to/icon.png"); // Replace with actual icon path
+        Graphics g = icon.getImage().getGraphics();
+        g.setColor(Color.BLUE);
+        g.fillOval(10,10,30,30);
+        g.dispose();
+
+        for (Edge edge : mst) {
+            Post p1 = edge.u;
+            Post p2 = edge.v;
+            Object[] rowData = {icon, edge.u.caption, edge.v.caption, edge.weight};
+            tableModel.addRow(rowData);
+        }
+
+        graphPanel.update(relevantPosts, mst); //
     }
     
 
@@ -218,7 +257,8 @@ public class KeywordMSTApp {
         }
         return parent.get(node);
     }
-
+    
+    // Post Node class 
     static class Post {
         String id;
         String mainKeyword;
@@ -281,11 +321,14 @@ public class KeywordMSTApp {
 
                 new Post("post_7", "school", List.of("school", "class", "teacher"), "I will have the exam tomorrow at class"),
                 new Post("post_8", "stress", List.of("anxiety", "pressure", "school"), "School pressure causing too much stress"),
-                new Post("post_9", "teacher", List.of("class", "school", "education"), "My teacher assigned a difficult project")
+                new Post("post_9", "teacher", List.of("class", "school", "education"), "My teacher assigned a difficult project"),
                 // with keyword "school"
-                // 7 - 9  will be more relate (lower) than 7 - 8 
+                // 7 - 9  will be more relate (lower) than 7 - 8
+                new Post("post_5", "beach", List.of("beach", "waves", "sunny"), "Beach day fun!"),
+                new Post("post_6", "city", List.of("shore", "waves", "vacation"), "Beach day aint fun!")
+
             );
         }
     }
 }
-
+// Note: This code is a simplified version and may not run as-is. It is meant to illustrate the concept of a keyword-centered MST application.
