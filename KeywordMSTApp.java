@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -13,16 +14,52 @@ public class KeywordMSTApp {
     }
 
     JTextField keywordField;
-    JTextArea resultArea;
+    //JTextArea resultArea;
     GraphPanel graphPanel;
-    JTable mstTable; //
-    DefaultTableModel tableModel; //
+    JTable mstTable;
+    DefaultTableModel mstTableModel;
 
 
     void createAndShowGUI() {
-        JFrame frame = new JFrame("Keyword-Centered MST");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(700, 500);
+    // frame
+    JFrame frame = new JFrame("Keyword MST");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setSize(900, 600); // Wider to fit all panels
+    
+    // components
+    keywordField = new JTextField(20);
+    JButton submitBtn = new JButton("Generate MST");
+    submitBtn.addActionListener(this::handleGenerate);
+    
+    // Clear button
+    JButton clearButton = new JButton("Clear");
+    clearButton.addActionListener(e -> handleClear());
+
+    
+    JPanel inputPanel = new JPanel();
+    inputPanel.add(new JLabel("Enter Keyword:"));
+    inputPanel.add(keywordField);
+    inputPanel.add(submitBtn);
+
+    inputPanel.add(clearButton);
+    
+    //resultArea = new JTextArea(10, 50);
+    //resultArea.setEditable(false);
+    //JScrollPane scrollPane = new JScrollPane(resultArea);
+    
+    graphPanel = new GraphPanel();
+    
+    
+    // Adding new posts
+    // create panel 
+    JPanel addPostPanel = new JPanel(new GridLayout(5,2,5,5));
+    addPostPanel.setBorder(BorderFactory.createTitledBorder("Add new post"));
+    
+    // create text field
+    JTextField idField = new JTextField(10);
+    JTextField keywordField = new JTextField(10);
+    JTextField relevantWordsField = new JTextField(20);
+    JTextField captionField = new JTextField(30);
 
         keywordField = new JTextField(20);
         JButton submitBtn = new JButton("Generate MST");
@@ -30,9 +67,35 @@ public class KeywordMSTApp {
         //resultArea.setEditable(false);
         //JScrollPane scrollPane = new JScrollPane(resultArea);
 
-        //
-        String[] columnNames = {"Icon", "Post 1 Caption", "Post 2 Caption", "Weight"};
-        tableModel = new DefaultTableModel(columnNames, 0){
+
+    // default table model
+    // Set up table for MST edges
+    String[] columnNames = { "Node 1", "Node 2", "Weight", "Caption 1", "Caption 2" };
+    mstTableModel = new DefaultTableModel(columnNames, 0); // 0 rows initially
+    mstTable = new JTable(mstTableModel);
+    JScrollPane tableScrollPane = new JScrollPane(mstTable);
+
+    
+
+    // Add button
+    JButton addButton = new JButton("Add Post");
+    addPostPanel.add(new JLabel(""));
+    addPostPanel.add(addButton);
+    // add action listener to button 
+    addButton.addActionListener(e -> handleAddPost(idField, keywordField, relevantWordsField, captionField));
+    
+    // Add all panels to frame
+    frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
+    frame.getContentPane().add(graphPanel, BorderLayout.CENTER);
+    //frame.getContentPane().add(scrollPane, BorderLayout.SOUTH);
+    frame.getContentPane().add(addPostPanel, BorderLayout.WEST);
+
+    // Replace the previous resultArea with table in SOUTH
+    frame.getContentPane().add(tableScrollPane, BorderLayout.SOUTH);
+
+    
+    // Set visible after adding all components
+    frame.setVisible(true);
 
             public Class<?> getColumnClass(int column) {
                 return column == 0 ? ImageIcon.class : Object.class;
@@ -79,6 +142,12 @@ public class KeywordMSTApp {
             this.nodeLocations = new HashMap<>();
             repaint();
         }
+
+        public void clearGraph() {
+            this.nodes = Collections.emptyList();
+            this.edges = Collections.emptyList();
+            repaint();
+        }
     
         @Override
         protected void paintComponent(Graphics g) {
@@ -90,13 +159,13 @@ public class KeywordMSTApp {
             g2.setFont(new Font("Arial", Font.PLAIN, 12));
     
             int w = getWidth(), h = getHeight();
-            int radius = 50;
+            int radius = 48;
             int centerX = w / 2, centerY = h / 2;
             double angleStep = 2 * Math.PI / nodes.size();
     
             for (int i = 0; i < nodes.size(); i++) {
-                int x = (int) (centerX + 200 * Math.cos(i * angleStep));
-                int y = (int) (centerY + 200 * Math.sin(i * angleStep));
+                int x = (int) (centerX + 100 * Math.cos(i * angleStep));
+                int y = (int) (centerY + 100 * Math.sin(i * angleStep));
                 nodeLocations.put(nodes.get(i), new Point(x, y));
             }
     
@@ -141,12 +210,14 @@ public class KeywordMSTApp {
                 relevantPosts.add(post);
             }
         }
+
+       
     
-        if (relevantPosts.size() < 2) {
-            resultArea.setText("Not enough relevant posts to build a tree.");
-            graphPanel.update(null, null); // clear graph
-            return;
-        }
+        //if (relevantPosts.size() < 2) {
+            //resultArea.setText("Not enough relevant posts to build a tree.");
+            //graphPanel.update(null, null); // clear graph
+            //return;
+        //}
     
         PriorityQueue<Edge> edgeQueue = new PriorityQueue<>();
         for (int i = 0; i < relevantPosts.size(); i++) {
@@ -174,10 +245,35 @@ public class KeywordMSTApp {
     
         mst.sort(Comparator.comparingInt(e1 -> e1.weight));
     
+<<<<<<< HEAD
         //StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
         //for (Edge edge : mst) {
             //sb.append(edge).append("\n");
         //}
+=======
+        StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
+        for (Edge edge : mst) {
+            sb.append(edge).append("\n");
+        }
+    
+        //resultArea.setText(sb.toString());
+
+        // Clear previous table data
+        mstTableModel.setRowCount(0);
+
+        // Fill table with MST edges
+        for (Edge edge : mst) {
+             Object[] row = {
+                 edge.u.id,
+                 edge.v.id,
+                 edge.weight,
+                 edge.u.caption,
+                 edge.v.caption
+             };
+             mstTableModel.addRow(row);
+         }
+ 
+>>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
     
         //resultArea.setText(sb.toString());
   
@@ -197,6 +293,12 @@ public class KeywordMSTApp {
         }
 
         graphPanel.update(relevantPosts, mst); //
+    }
+
+    private void handleClear() {
+        keywordField.setText("");
+        mstTableModel.setRowCount(0);
+        graphPanel.clearGraph();
     }
     
 
@@ -311,6 +413,36 @@ public class KeywordMSTApp {
     }
 
     static class DataSource {
+<<<<<<< HEAD
+=======
+        public static final List<Post> SamplePosts = new ArrayList<>(List.of( // creates mutable list initialized by an immutable List.of
+       
+        new Post("post_1", "summer", List.of("sunset", "swim", "vacation"), "POV: you’re 98% sunscreen and 2% human"),
+        new Post("post_2", "coffee", List.of("caffeine", "latte", "morning"), "Me after one sip of coffee: I can fight God"),
+        new Post("post_3", "cat", List.of("meow", "nap", "chaos"), "My cat at 3am: parkour. me: pls no."),
+        new Post("post_4", "gym", List.of("workout", "gains", "protein"), "Went to the gym. Lifted a dumbbell. Called it a day."),
+        new Post("post_5", "meme", List.of("lol", "relatable", "dank"), "If Monday had a face, I’d sue it"),
+        new Post("post_6", "food", List.of("snack", "treat", "yum"), "Accidentally meal prepped dessert for 5 days straight"),
+        new Post("post_7", "dog", List.of("woof", "walkies", "bork"), "My dog: *eats homework*. Me: he’s just expressing himself."),
+        new Post("post_8", "wifi", List.of("offline", "panic", "404"), "No WiFi for 10 mins. Wrote a diary. Met my family. Wild."),
+        new Post("post_9", "study", List.of("exam", "panic", "procrastinate"), "Studied for 6 hours. Remembered nothing. Respect the grind."),
+        new Post("post_10", "fashion", List.of("ootd", "drip", "crocs"), "Today’s vibe: business casual with emotional damage"),
+        new Post("post_11", "zombie", List.of("apocalypse", "survival", "lol"), "If zombies come, I’m tripping over my own shoelaces first"),
+        new Post("post_12", "sleep", List.of("nap", "zzz", "comfy"), "Me: I’ll sleep early tonight. Also me at 2am: what if pigeons have secret lives?"),
+        new Post("post_13", "coffee", List.of("espresso", "vibes", "chaotic"), "Espresso depresso but make it aesthetic"),
+        new Post("post_14", "summer", List.of("heatwave", "sweat", "hydration"), "It’s so hot outside I saw a squirrel with a mini fan"),
+        new Post("post_15", "internet", List.of("scroll", "doom", "addicted"), "Been scrolling for 3 hours. Found inner peace and a raccoon wearing sunglasses"),
+        new Post("post_16", "discrete", List.of("math", "truth_table", "logic"), "Thay Linh said 'P → Q' and suddenly my whole life started making conditional sense 🤯📐"),
+        new Post("post_17", "discrete", List.of("proof", "pigeonhole", "braincell"), "Me in Thay Linh's class trying to understand proofs with my one surviving brain cell 🕊️🔍"),
+        new Post("post_18", "discrete", List.of("set", "venn", "subset"), "Thay Linh: 'A ⊆ B'. Me: ‘A’ is my sleep, ‘B’ is the homework due yesterday."),
+        new Post("post_19", "discrete", List.of("graph", "bipartite", "exam"), "Thay Linh during exams: Is this graph connected? Me: Emotionally? Not really 🧠💔")
+
+
+
+            // with keyword "school"
+            // 7 - 9  will be more relate (lower) than 7 - 8 
+        ));
+>>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
         public static List<Post> getSamplePosts() {
             return List.of(
                 new Post("post_1", "summer", List.of("sunset", "swim", "vacation"), "Enjoying the beach at sunset."),
@@ -331,4 +463,9 @@ public class KeywordMSTApp {
         }
     }
 }
+<<<<<<< HEAD
 // Note: This code is a simplified version and may not run as-is. It is meant to illustrate the concept of a keyword-centered MST application.
+=======
+
+
+>>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
