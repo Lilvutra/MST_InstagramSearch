@@ -1,4 +1,5 @@
 
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -61,11 +62,15 @@ public class KeywordMSTApp {
     JTextField relevantWordsField = new JTextField(20);
     JTextField captionField = new JTextField(30);
 
-        keywordField = new JTextField(20);
-        JButton submitBtn = new JButton("Generate MST");
-        //resultArea = new JTextArea(20, 50);
-        //resultArea.setEditable(false);
-        //JScrollPane scrollPane = new JScrollPane(resultArea);
+    // Add labels and fields to panel
+    addPostPanel.add(new JLabel("Post ID:"));
+    addPostPanel.add(idField);
+    addPostPanel.add(new JLabel("Main keyword:"));
+    addPostPanel.add(keywordField);
+    addPostPanel.add(new JLabel("Relevant words:"));
+    addPostPanel.add(relevantWordsField);
+    addPostPanel.add(new JLabel("Caption"));
+    addPostPanel.add(captionField);
 
 
     // default table model
@@ -97,41 +102,7 @@ public class KeywordMSTApp {
     // Set visible after adding all components
     frame.setVisible(true);
 
-            public Class<?> getColumnClass(int column) {
-                return column == 0 ? ImageIcon.class : Object.class;
-            }
-
-            public boolean isCellEditable(int row, int column) {
-                return false; // Make cells non-editable
-            }
-        };
-
-        mstTable = new JTable(tableModel);
-        mstTable.setRowHeight(50); // Set row height to accommodate icons
-
-        JScrollPane tableScrollPane = new JScrollPane(mstTable);
-        frame.add(tableScrollPane, BorderLayout.SOUTH);
-
-        submitBtn.addActionListener(this::handleGenerate);
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.add(new JLabel("Enter Keyword:"));
-        inputPanel.add(keywordField);
-        inputPanel.add(submitBtn);
-
-        frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
-        //frame.getContentPane().add(scrollPane, BorderLayout.CENTER); //
-        frame.setVisible(true);
-
-        graphPanel = new GraphPanel();
-
-        frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
-        //frame.getContentPane().add(scrollPane, BorderLayout.SOUTH);
-        frame.getContentPane().add(graphPanel, BorderLayout.CENTER);
-
-    }
-
-    class GraphPanel extends JPanel {
+    }class GraphPanel extends JPanel {
         List<KeywordMSTApp.Post> nodes;
         List<KeywordMSTApp.Edge> edges;
         Map<KeywordMSTApp.Post, Point> nodeLocations;
@@ -192,7 +163,43 @@ public class KeywordMSTApp {
         }
     }
     
+    // method to add new post
+    void handleAddPost (JTextField idField, JTextField keywordField, JTextField relevantWorField, JTextField captionField){
+        // get values from text field
+        // get ID
+        String id = idField.getText().trim(); // trim(): remove whitespace at beginning and end of string 
+        // get keyword
+        String keyword = keywordField.getText().trim();
+        // get relevantWords
+        String [] relevantWordsArray = relevantWorField.getText().split("\\s+");
+        List<String> relevantWords = new ArrayList<>();
+        for (int i = 0; i < relevantWordsArray.length; i++){
+            relevantWords.add(relevantWordsArray[i]);
+        }
+        // get caption
+        String caption = captionField.getText().trim();
 
+        // create new Post object
+        Post newPost = new Post(id, keyword, relevantWords, caption);
+
+        // add this to data source
+        DataSource.addPost(newPost);
+
+        // after that, clear field
+        idField.setText("");
+        keywordField.setText("");
+        relevantWorField.setText("");
+        captionField.setText("");
+
+        // notification
+        JOptionPane.showMessageDialog(null, "Post added successfully");
+
+        // regenerate MST
+        if (!this.keywordField.getText().trim().isEmpty()){
+            handleGenerate(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "generate"));
+        }
+
+    }
 
 
     void handleGenerate(ActionEvent e) {
@@ -204,10 +211,13 @@ public class KeywordMSTApp {
     
         List<Post> allPosts = DataSource.getSamplePosts();
         List<Post> relevantPosts = new ArrayList<>();
-    
+        
+        // Filter posts based on the keyword
         for (Post post : allPosts) {
             if (post.mainKeyword.equalsIgnoreCase(keyword) || post.relevantWords.contains(keyword)) {
                 relevantPosts.add(post);
+                System.out.println("relevantPosts: " + relevantPosts);
+                System.out.println("post: " + post);
             }
         }
 
@@ -218,7 +228,8 @@ public class KeywordMSTApp {
             //graphPanel.update(null, null); // clear graph
             //return;
         //}
-    
+        
+        // Min-Heap Primary Queue to store edges
         PriorityQueue<Edge> edgeQueue = new PriorityQueue<>();
         for (int i = 0; i < relevantPosts.size(); i++) {
             for (int j = i + 1; j < relevantPosts.size(); j++) {
@@ -228,15 +239,28 @@ public class KeywordMSTApp {
                 edgeQueue.add(new Edge(u, v, weight));
             }
         }
+
+        System.out.println("edgeQueue: " + edgeQueue);
     
         List<Edge> mst = new ArrayList<>();
         Map<Post, Post> parent = new HashMap<>();
         for (Post post : relevantPosts) parent.put(post, post);
+        System.out.println("parent: " + parent);
     
+        // Kruskal's algorithm
         while (!edgeQueue.isEmpty() && mst.size() < relevantPosts.size() - 1) {
             Edge edge = edgeQueue.poll();
+            System.out.println("edge: " + edge);
+            System.out.println("parent1: " + parent);
             Post rootU = find(parent, edge.u);
+            
+            System.out.println("rootU: " + rootU);
+            System.out.println("edge.v: " + edge.v);
+
             Post rootV = find(parent, edge.v);
+            System.out.println("rootV: " + rootV);
+            System.out.println("edge.u: " + edge.u);
+
             if (!rootU.equals(rootV)) {
                 mst.add(edge);
                 parent.put(rootU, rootV);
@@ -245,12 +269,6 @@ public class KeywordMSTApp {
     
         mst.sort(Comparator.comparingInt(e1 -> e1.weight));
     
-<<<<<<< HEAD
-        //StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
-        //for (Edge edge : mst) {
-            //sb.append(edge).append("\n");
-        //}
-=======
         StringBuilder sb = new StringBuilder("MST Edges (in increasing weight):\n");
         for (Edge edge : mst) {
             sb.append(edge).append("\n");
@@ -273,26 +291,9 @@ public class KeywordMSTApp {
              mstTableModel.addRow(row);
          }
  
->>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
     
-        //resultArea.setText(sb.toString());
-  
         // Send to graphPanel
-        tableModel.setRowCount(0); // Clear previous data
-        ImageIcon icon = new ImageIcon("path/to/icon.png"); // Replace with actual icon path
-        Graphics g = icon.getImage().getGraphics();
-        g.setColor(Color.BLUE);
-        g.fillOval(10,10,30,30);
-        g.dispose();
-
-        for (Edge edge : mst) {
-            Post p1 = edge.u;
-            Post p2 = edge.v;
-            Object[] rowData = {icon, edge.u.caption, edge.v.caption, edge.weight};
-            tableModel.addRow(rowData);
-        }
-
-        graphPanel.update(relevantPosts, mst); //
+        graphPanel.update(relevantPosts, mst);
     }
 
     private void handleClear() {
@@ -315,7 +316,7 @@ public class KeywordMSTApp {
         int position_v = v.relevantWords.indexOf(keyword);
         score += (v.relevantWords.size() - position_v); 
 
-        //count the common related words in relevantWords between post u and v
+        //count the common related words in relevantwords between post u and v
         for (int i = 0; i < u.relevantWords.size(); i++){
             for (int j = 0; j < v.relevantWords.size(); j++){
                 if (u.relevantWords.get(i).equalsIgnoreCase(v.relevantWords.get(j))){
@@ -325,21 +326,36 @@ public class KeywordMSTApp {
             }
         }
         
-        //count the words in post caption that appeared in another post's relevantWords
+        // count the words in post's caption that appeared in another post's relevantWords
         String [] uWords = u.caption.split("\\s+");
+        System.out.println("uWords: " + Arrays.toString(uWords));
         String [] vWords = v.caption.split("\\s+"); // split at whitespace
+        System.out.println("vWords: " + Arrays.toString(vWords));
 
         List<String> uList = Arrays.asList(uWords);
+        System.out.println("uList: " + uList);
+        System.out.println("u.relevantWords: " + u.relevantWords);
+        System.out.println("v.relevantWords: " + v.relevantWords);
         List<String> vList = Arrays.asList(vWords);
 
+        // count the words in u's caption that appeared in v's relevantwords 
         for (int i = 0; i < uList.size(); i++){
+            System.out.println("i " + i);
+
             for (int j = 0; j < v.relevantWords.size(); j++){
+                System.out.println("j " + j);
+                System.out.println("uList.get(i): " + uList.get(i));
+                System.out.println("v.relevantWords.get(j): " + v.relevantWords.get(j));
                 if (uList.get(i).equalsIgnoreCase(v.relevantWords.get(j))){
+                    System.out.println("uList.get(i): " + uList.get(i));
+                    System.out.println("v.relevantWords.get(j): " + v.relevantWords.get(j));
                     score ++;
                     break;
                 }
             }
         }
+
+        // count the words in v's caption that appeared in u's relevantwords
         for (int i = 0; i < vList.size(); i++){
             for (int j = 0; j < u.relevantWords.size(); j++){
                 if (vList.get(i).equalsIgnoreCase(u.relevantWords.get(j))){
@@ -353,14 +369,24 @@ public class KeywordMSTApp {
         return 100 - score;
     }
 
+    // Find the root (or representative) of the set that a given node belongs to
+    // If the node is not the root, we recursively find the root and compress the path
+    // by making the node point directly to the root
+    // This is called path compression
+    // This is a common optimization in union-find algorithms
+    // It helps to flatten the structure of the tree whenever find is called
+    // This makes future queries faster
+    // If both endpoints have the same root, they're already connected in the current MST
+
+    
     Post find(Map<Post, Post> parent, Post node) {
         if (parent.get(node) != node) {
+            System.out.println("find: " + node + " -> " + parent.get(node));
             parent.put(node, find(parent, parent.get(node)));
         }
         return parent.get(node);
     }
-    
-    // Post Node class 
+
     static class Post {
         String id;
         String mainKeyword;
@@ -380,9 +406,9 @@ public class KeywordMSTApp {
             return false;
         }
 
-        @Override
+        @Override 
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(id); //ha, we dont need to use this
         }
 
         @Override
@@ -412,19 +438,18 @@ public class KeywordMSTApp {
         }
     }
 
+    // change to ArrayList to make it mutable to be able to add new Post.
     static class DataSource {
-<<<<<<< HEAD
-=======
         public static final List<Post> SamplePosts = new ArrayList<>(List.of( // creates mutable list initialized by an immutable List.of
        
-        new Post("post_1", "summer", List.of("sunset", "swim", "vacation"), "POV: you’re 98% sunscreen and 2% human"),
+        new Post("post_1", "summer", List.of("exam", "swim", "vacation"), "POV: you’re 98% sunscreen and 2% human"),
         new Post("post_2", "coffee", List.of("caffeine", "latte", "morning"), "Me after one sip of coffee: I can fight God"),
         new Post("post_3", "cat", List.of("meow", "nap", "chaos"), "My cat at 3am: parkour. me: pls no."),
         new Post("post_4", "gym", List.of("workout", "gains", "protein"), "Went to the gym. Lifted a dumbbell. Called it a day."),
         new Post("post_5", "meme", List.of("lol", "relatable", "dank"), "If Monday had a face, I’d sue it"),
-        new Post("post_6", "food", List.of("snack", "treat", "yum"), "Accidentally meal prepped dessert for 5 days straight"),
+        new Post("post_6", "food", List.of("lol", "exam", "yum"), "Accidentally meal prepped dessert for 5 days straight"),
         new Post("post_7", "dog", List.of("woof", "walkies", "bork"), "My dog: *eats homework*. Me: he’s just expressing himself."),
-        new Post("post_8", "wifi", List.of("offline", "panic", "404"), "No WiFi for 10 mins. Wrote a diary. Met my family. Wild."),
+        new Post("post_8", "wifi", List.of("offline", "panic", "404"), "No WiFi for 10 mins. Wrote a diary. Met my family. Wild. day"),
         new Post("post_9", "study", List.of("exam", "panic", "procrastinate"), "Studied for 6 hours. Remembered nothing. Respect the grind."),
         new Post("post_10", "fashion", List.of("ootd", "drip", "crocs"), "Today’s vibe: business casual with emotional damage"),
         new Post("post_11", "zombie", List.of("apocalypse", "survival", "lol"), "If zombies come, I’m tripping over my own shoelaces first"),
@@ -442,30 +467,14 @@ public class KeywordMSTApp {
             // with keyword "school"
             // 7 - 9  will be more relate (lower) than 7 - 8 
         ));
->>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
         public static List<Post> getSamplePosts() {
-            return List.of(
-                new Post("post_1", "summer", List.of("sunset", "swim", "vacation"), "Enjoying the beach at sunset."),
-                new Post("post_2", "sunset", List.of("sunset", "ocean", "beach"), "Sunset over the ocean."),
-                new Post("post_3", "vacation", List.of("beach", "sunset", "swim"), "Holiday vibes!"),
-                new Post("post_4", "forest", List.of("trees", "hike", "sunset"), "Hiking in the forest."),
-                new Post("post_5", "beach", List.of("waves", "swim", "sunny"), "Beach day fun!"),
+            return SamplePosts; // mutable list
+        }
 
-                new Post("post_7", "school", List.of("school", "class", "teacher"), "I will have the exam tomorrow at class"),
-                new Post("post_8", "stress", List.of("anxiety", "pressure", "school"), "School pressure causing too much stress"),
-                new Post("post_9", "teacher", List.of("class", "school", "education"), "My teacher assigned a difficult project"),
-                // with keyword "school"
-                // 7 - 9  will be more relate (lower) than 7 - 8
-                new Post("post_5", "beach", List.of("beach", "waves", "sunny"), "Beach day fun!"),
-                new Post("post_6", "city", List.of("shore", "waves", "vacation"), "Beach day aint fun!")
-
-            );
+        public static void addPost(Post newPost){
+            SamplePosts.add(newPost);
         }
     }
 }
-<<<<<<< HEAD
-// Note: This code is a simplified version and may not run as-is. It is meant to illustrate the concept of a keyword-centered MST application.
-=======
 
 
->>>>>>> f908bdc (Add Clear button, represent nodes with defaultTable instead of textField, add some more nodes...)
