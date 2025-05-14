@@ -444,9 +444,9 @@ public class KeywordMSTApp {
        
         new Post("post_1", "summer", List.of("exam", "swim", "vacation"), "POV: you’re 98% sunscreen and 2% human"),
         new Post("post_2", "coffee", List.of("caffeine", "latte", "morning"), "Me after one sip of coffee: I can fight God"),
-        new Post("post_3", "cat", List.of("meow", "nap", "chaos"), "My cat at 3am: parkour. me: pls no."),
+        new Post("post_3", "dog", List.of("meow", "nap", "chaos"), "My cat at 3am: parkour. me: pls no."),
         new Post("post_4", "gym", List.of("workout", "gains", "protein"), "Went to the gym. Lifted a dumbbell. Called it a day."),
-        new Post("post_5", "meme", List.of("lol", "relatable", "dank"), "If Monday had a face, I’d sue it"),
+        new Post("post_5", "dog", List.of("lol", "dog", "dog"), "If Monday had a face, I’d sue a dog"),
         new Post("post_6", "food", List.of("lol", "exam", "yum"), "Accidentally meal prepped dessert for 5 days straight"),
         new Post("post_7", "dog", List.of("woof", "walkies", "bork"), "My dog: *eats homework*. Me: he’s just expressing himself."),
         new Post("post_8", "wifi", List.of("offline", "panic", "404"), "No WiFi for 10 mins. Wrote a diary. Met my family. Wild. day"),
@@ -457,9 +457,9 @@ public class KeywordMSTApp {
         new Post("post_13", "coffee", List.of("espresso", "vibes", "chaotic"), "Espresso depresso but make it aesthetic"),
         new Post("post_14", "summer", List.of("heatwave", "sweat", "hydration"), "It’s so hot outside I saw a squirrel with a mini fan"),
         new Post("post_15", "internet", List.of("scroll", "doom", "addicted"), "Been scrolling for 3 hours. Found inner peace and a raccoon wearing sunglasses"),
-        new Post("post_16", "discrete", List.of("math", "truth_table", "logic"), "Thay Linh said 'P → Q' and suddenly my whole life started making conditional sense 🤯📐"),
-        new Post("post_17", "discrete", List.of("proof", "pigeonhole", "braincell"), "Me in Thay Linh's class trying to understand proofs with my one surviving brain cell 🕊️🔍"),
-        new Post("post_18", "discrete", List.of("set", "venn", "subset"), "Thay Linh: 'A ⊆ B'. Me: ‘A’ is my sleep, ‘B’ is the homework due yesterday."),
+        new Post("post_16", "discrete", List.of("discrete", "truth_table", "logic"), "Thay Linh said 'P → Q' and suddenly my whole life started making conditional sense 🤯📐"),
+        new Post("post_17", "discrete", List.of("proof", "discrete", "braincell"), "Me in Thay Linh's class trying to understand proofs with my one surviving brain cell 🕊️🔍"),
+        new Post("post_18", "discrete", List.of("set", "venn", "discrete"), "Thay Linh: 'A ⊆ B'. Me: ‘A’ is my sleep, ‘B’ is the homework due yesterday."),
         new Post("post_19", "discrete", List.of("graph", "bipartite", "exam"), "Thay Linh during exams: Is this graph connected? Me: Emotionally? Not really 🧠💔")
 
 
